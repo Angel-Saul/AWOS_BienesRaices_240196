@@ -1,0 +1,34 @@
+{
+  "name": "awos_bienesraices_240196",
+  "version": "1.0.0",
+  "description": "Sistema de Bienes Raices - Proyecto de Clase",
+  "keywords": [
+    "SOA",
+    "MCV",
+    "REST",
+    "Tailwind",
+    "Sequelize",
+    "NodeJS"
+  ],
+  "homepage": "https://github.com/Angel-Saul/AWOS_BienesRaices_240196#readme",
+  "bugs": {
+    "url": "https://github.com/Angel-Saul/AWOS_BienesRaices_240196/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Angel-Saul/AWOS_BienesRaices_240196.git"
+  },
+  "license": "ISC",
+  "author": "Angel Saúl Barrios Martínez",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "server": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
