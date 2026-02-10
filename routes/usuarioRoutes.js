@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 
 //creamos el ruteador
 
@@ -96,13 +96,9 @@ router.delete("/deleteProperty/:id", (req, res) => {
 
 
 router.get("/login", (req, res) => {
-    console.log("El usuario desea acceder al sistema")
-    res.status(200).send(`<h1>Por favor introduce tus credenciales de acceso </h1>
-        <form>
-            <input type="text"></input><br>
-            <input type="password"></input><br>
-            <button>Enviar</button>
-        </form>`);
+    res.render("auth/login",{
+        autenticado: true
+    })
 })
 
 router.get("/saludo/:nombre", (req, res)=>
