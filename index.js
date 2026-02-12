@@ -10,6 +10,11 @@ const PORT = process.env.PORT ?? 3000;
 app.set('view engine', 'pug');
 app.set('views', './views');
 
+//Definimos la carpeta publica
+app.use(express.static('public'));
+
+
+
 //Importamos sus rutas (ruteo)
 app.use("/auth", usuarioRoutes);
 
