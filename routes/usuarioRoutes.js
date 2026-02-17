@@ -15,6 +15,9 @@ router.get("/login", formularioLogin )
 router.get("/registro", formularioRegistro )
 
 
+router.get("/registro2", formularioRegistro )
+
+
 router.get("/", (req, res) => {
     console.log("Bienvenid@ al sistema de Bienes Raices")
     console.log("Procesando una petición del tipo GET");
