@@ -1,6 +1,7 @@
 import express, { json } from "express"
 import  { formularioLogin} from '../controllers/usuarioController.js';
 import { formularioRegistro } from "../controllers/usuarioController.js";
+import { formualrioRecuperar } from "../controllers/usuarioController.js";
 
 
 
@@ -13,6 +14,10 @@ const router = express.Router();
 //Ejemplo de ENDPOINT GET 
 router.get("/login", formularioLogin )
 router.get("/registro", formularioRegistro )
+router.get("/recuperar", formualrioRecuperar )
+
+
+router.get("/registro2", formularioRegistro )
 
 
 router.get("/", (req, res) => {
