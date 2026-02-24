@@ -1,5 +1,5 @@
 import express, { json } from "express"
-import  { formularioLogin} from '../controllers/usuarioController.js';
+import  { formularioLogin, registrarUsuario} from '../controllers/usuarioController.js';
 import { formularioRegistro } from "../controllers/usuarioController.js";
 import { formualrioRecuperar } from "../controllers/usuarioController.js";
 
@@ -30,6 +30,7 @@ router.get("/", (req, res) => {
 })
 
 //Ejemplo de ENDPOINT POST
+router.post("/registro", registrarUsuario) // El endpoint "/registro" se define para manejar las solicitudes POST que se envían desde el formulario de registro de usuarios. Cuando un usuario completa el formulario de registro y lo envía, los datos del formulario se envían al servidor mediante una solicitud POST a esta ruta. La función registrarUsuario es la encargada de procesar estos datos, crear un nuevo usuario en la base de datos y enviar una respuesta al cliente con la información del nuevo usuario registrado o con un mensaje de error si algo sale mal durante el proceso de registro.
 router.post("/", (req, res) => {
     console.log("Procesando una petición del tipo POST");
     res.json({
