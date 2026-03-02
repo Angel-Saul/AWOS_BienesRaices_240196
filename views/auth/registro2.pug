@@ -2,32 +2,56 @@ extends ../layout/index
     
 block contenido
     .py-10
-        h1.text-4xl.my-10.font-extrabold.text-center.text-blue-500 Bienes
+        h1.text-4xl.my-10.font-extrabold.text-center.text-lime-400 Bienes
             span.font-normal.text-black Raíces 
-        h2.text-center.text-2xl.font-normal.text-black Ingresa tus datos
+        h2.text-center.text-2xl.font-normal.text-black= pagina
 
-    .mt-8.mx-auto.max-w-xl
-        .bg-with.py-8.px-4.shadow-2xl.rounded-2xl
-            form.space-y-5
-                div.px-5
-                    label.block.tetx-sm.uppercase.text-gray-500.mb-2.font-bold(for="nombreUsuario") Nombre Completo:
-                    input#nombreUsuario.w-full.border.boder-gray-500.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder
-                    ="P.e: Luis Felipe Cázarez Márquez" name="nombreUsuario" type="text")
-                div.px-5
-                    label.block.tetx-sm.uppercase.text-gray-500.mb-2.font-bold(for="correoUsuario") Correo Electrónico:
-                    input#correoUsuario.w-full.border.boder-gray-500.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder
-                    ="P.e: usuario@gmail.com" name="correoUsuario" type="email")
-                div.px-5
-                    label.block.tetx-sm.uppercase.text-gray-500.mb-2.font-bold(for="passworsUsuario") Contraseña:
-                    input#passwordUsuario.w-full.border.boder-gray-500.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder
-                    ="Almenos 8 carácteres" name="passwordUsuario" type="password")
-                div.px-5
-                    label.block.tetx-sm.uppercase.text-gray-500.mb-2.font-bold(for="confirmarContraseña") Confirmar Contraseña:
-                    input#confirmacionPass.w-full.border.boder-gray-500.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder
-                    ="Escribe nuevamente la contraseña" name="confirmacionPass" type="password")
+        if errores
+            div.max-w-md.mx-auto.my-10
+                each error in errores
+                    p.bg-red-600.text-white.uppercase.text-xs.text-center.p-2.mb-1.font-bold= error.msg
 
-                input(class="w-full bg-blue-500 text-black hover:text-white hover:bg-blue-600 font-bold py-3 cursor-pointer shadow-lg uppercase rounded-2xl" type="submit" value="Registrar Usuario")
+    .mt-8.mx-auto.max-w-xl.pb-5
+        .bg-white.py-8.px-4.shadow-2xl.rounded-2xl
+            //- Formulario de Registro Tradicional
+            form.space-y-5(method="POST" action="/auth/registro" noValidate) 
+                div.px-5
+                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-bold(for="emailUsuario") Correo Electrónico ó Usuario:
+                    input#emailUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="Nombre de usuario" name="emailUsuario" value= usuario ? usuario.emailUsuario: '' type="email")  
+
+                div.px-5
+                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-bold(for="passwordUsuario") Contraseña:
+                    input#passwordUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="Contraseña" name="passwordUsuario" type="password")
+
+                div.px-5.flex.items-center.gap-2.mt-1
+                    input#verP1(type="checkbox" class="cursor-pointer" onclick="document.getElementById('passwordUsuario').type = this.checked ? 'text' : 'password'")
+                    label.text-xs.text-gray-500.cursor-pointer(for="verP1") Mostrar contraseña
+
+                input(class="w-full bg-lime-400 hover:bg-lime-500 hover:transition text-gray-600 hover:text-white font-bold py-3 cursor-pointer shadow-lg rounded-full uppercase" type="submit" value="Iniciar Sesión")
+
+            //- Divisor visual para Redes Sociales
+            div.relative.my-8.px-5
+                div.absolute.inset-0.flex.items-center
+                    div.w-full.border-t.border-gray-300
+                div.relative.flex.justify-center.text-sm
+                    span.px-2.bg-white.text-gray-500 O inicia con
+
+            //- Botones de Redes Sociales (Examen Práctico)
+            div.px-5.grid.grid-cols-2.gap-4
+                a(href="/auth/github" class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white font-bold hover:bg-gray-800 transition shadow-md")
+                    img.h-5.w-5.filter.invert(src="https://www.svgrepo.com/show/512317/github-142.svg" alt="GitHub")
+                    span GitHub
                 
-                div.flex.items-center.justify-between.pt-2
-                    a(class="text-sm text-gray-500 hover:text-gray-700" href="/auth/login") ¿Ya tienes una cuenta? Inicia Sesión
-                    a(class="text-sm text-gray-500 hover:text-gray-700" href="/auth/recuperar") ¿Olvidaste tu contraseña? Recuperar Contraseña
+                //- Botón Discord Corregido
+                a(href="/auth/discord" class="flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-[#5865F2] text-white font-bold hover:bg-[#4752C4] transition shadow-md")
+                    svg(role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 fill-current text-white")
+                        path(d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495a18.2779 18.2779 0 00-5.4877 0 11.5847 11.5847 0 00-.6119-1.2495.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0775-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.419-2.1569 2.419zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.419-2.1568 2.419z")
+                    span Discord
+
+            div.flex.items-center.justify-between.pt-8.px-5
+                a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/registro") ¿No tienes cuenta? Registrate
+                a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/recuperar") ¿Olvidaste tu contraseña?
+
+    footer.text-gray-500.py-6.mt-10
+        .max-w-7xl.mx-auto.text-center.text-sm
+            p © 2026 Angel Saúl Barrios Martínez - 240196

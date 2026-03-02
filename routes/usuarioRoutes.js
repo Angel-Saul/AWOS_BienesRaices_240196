@@ -1,121 +1,224 @@
-import express, { json } from "express"
-import  { formularioLogin, registrarUsuario} from '../controllers/usuarioController.js';
-import { formularioRegistro } from "../controllers/usuarioController.js";
-import { formualrioRecuperar } from "../controllers/usuarioController.js";
+// import express from "express"
+// import { 
+//     formularioLogin, 
+//     registrarUsuario, 
+//     formularioRegistro, 
+//     formularioRegistro2, // Importamos la nueva función
+//     formualrioRecuperar 
+// } from '../controllers/usuarioController.js';
+
+// const router = express.Router();
+
+// // ==========================================
+// // RUTAS DE AUTENTICACIÓN (Vistas Pug)
+// // ==========================================
+
+// // Login tradicional
+// router.get("/login", formularioLogin);
+
+// // Registro estándar
+// router.get("/registro", formularioRegistro);
+// router.post("/registro", registrarUsuario);
+
+// // Registro/Login Estilo Redes Sociales (GitHub y Discord)
+// // CORRECCIÓN: Antes apuntaba a formularioRegistro, ahora a formularioRegistro2
+// router.get("/registro2", formularioRegistro2);
+
+// // Recuperación de contraseña
+// router.get("/recuperar", formualrioRecuperar);
 
 
+// // ==========================================
+// // ENDPOINTS DE PRUEBA / API (JSON)
+// // ==========================================
 
-//creamos el ruteador
+// // Root de usuarios
+// router.get("/", (req, res) => {
+//     console.log("Bienvenid@ al sistema de Bienes Raices");
+//     res.json({
+//         status: 200, 
+//         message: "Solicitud recibida a través del método GET"
+//     });
+// });
+
+// // Ejemplo POST denegado en root
+// router.post("/", (req, res) => {
+//     res.json({
+//         status: 200, 
+//         message: "Lo sentimos, no se aceptan peticiones POST en esta raíz"
+//     });
+// });
+
+// // Crear Usuario (Simulación)
+// router.post("/createUser", (req, res) => {
+//     const nuevoUsuario = {
+//         nombre: "Angel Saúl Barrios Martinez",
+//         correo: "240196@utxicotepec.edu.mx"
+//     };
+//     res.json({
+//         status: 200,
+//         message: `Se ha solicitado la creación de: ${nuevoUsuario.nombre}`,
+//     });
+// });
+
+// // Actualizar Usuario (Simulación PUT)
+// router.put("/updateUser", (req, res) => {
+//     res.json({
+//         status: 200,
+//         message: "Se ha solicitado la actualización completa de los datos"
+//     });
+// });
+
+// // Actualizar Password (Simulación PATCH)
+// router.patch("/updatePassword/:nuevoPassword", (req, res) => {
+//     const { nuevoPassword } = req.params;
+//     res.json({
+//         status: 200,
+//         message: `Actualización parcial de contraseña a: ${nuevoPassword}`
+//     });
+// });
+
+// // Eliminar Propiedad (Simulación DELETE)
+// router.delete("/deleteProperty/:id", (req, res) => {
+//     const { id } = req.params;
+//     res.json({
+//         status: 200,
+//         message: `Se ha solicitado eliminar la propiedad con el id ${id}`
+//     });
+// });
+
+// // Saludo Dinámico
+// router.get("/saludo/:nombre", (req, res) => {
+//     const { nombre } = req.params;
+//     res.status(200).send(`<h1>Bienvenido <b>${nombre}</b></h1>`);
+// });
+
+// export default router;
+
+
+import express from "express"
+import passport from 'passport'; // Necesario para las rutas de redes sociales
+import { 
+    formularioLogin, 
+    registrarUsuario, 
+    formularioRegistro, 
+    formularioRegistro2, 
+    formualrioRecuperar 
+} from '../controllers/usuarioController.js';
 
 const router = express.Router();
 
-//Definimos las rutas 
-        
-//Ejemplo de ENDPOINT GET 
-router.get("/login", formularioLogin )
-router.get("/registro", formularioRegistro )
-router.get("/recuperar", formualrioRecuperar )
+// ==========================================
+// RUTAS DE AUTENTICACIÓN (Vistas Pug)
+// ==========================================
+
+// Login tradicional
+router.get("/login", formularioLogin);
+
+// Registro estándar (Manual)
+router.get("/registro", formularioRegistro);
+router.post("/registro", registrarUsuario);
+
+// Registro/Login Estilo Redes Sociales (Tu diseño de examen)
+router.get("/registro2", formularioRegistro2);
+
+// Recuperación de contraseña
+router.get("/recuperar", formualrioRecuperar);
 
 
-router.get("/registro2", formularioRegistro )
+// ==========================================
+//   RUTAS DE REDES SOCIALES (OAuth2)
+// ==========================================
+
+// --- GITHUB ---
+// Al dar clic en el botón de GitHub
+router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+// Callback de GitHub (donde regresa el usuario)
+router.get('/github/callback', 
+    passport.authenticate('github', { failureRedirect: '/auth/registro2' }),
+    (req, res) => {
+        // Si todo sale bien, lo mandamos al inicio o panel
+        res.redirect('/'); 
+    }
+);
+
+// --- DISCORD ---
+// Al dar clic en el botón de Discord
+router.get('/discord', passport.authenticate('discord', { scope: ['identify', 'email'] }));
+
+// Callback de Discord
+router.get('/discord/callback', 
+    passport.authenticate('discord', { failureRedirect: '/auth/registro2' }),
+    (req, res) => {
+        res.redirect('/');
+    }
+);
 
 
+// ==========================================
+// ENDPOINTS DE PRUEBA / API (JSON)
+// ==========================================
+
+// Root de usuarios
 router.get("/", (req, res) => {
-    console.log("Bienvenid@ al sistema de Bienes Raices")
-    console.log("Procesando una petición del tipo GET");
+    console.log("Bienvenid@ al sistema de Bienes Raices");
     res.json({
-        status:200, 
-        message: "Solicitud recibida através del metodo GET"
-    })
-})
+        status: 200, 
+        message: "Solicitud recibida a través del método GET"
+    });
+});
 
-//Ejemplo de ENDPOINT POST
-router.post("/registro", registrarUsuario) // El endpoint "/registro" se define para manejar las solicitudes POST que se envían desde el formulario de registro de usuarios. Cuando un usuario completa el formulario de registro y lo envía, los datos del formulario se envían al servidor mediante una solicitud POST a esta ruta. La función registrarUsuario es la encargada de procesar estos datos, crear un nuevo usuario en la base de datos y enviar una respuesta al cliente con la información del nuevo usuario registrado o con un mensaje de error si algo sale mal durante el proceso de registro.
+// Ejemplo POST denegado en root
 router.post("/", (req, res) => {
-    console.log("Procesando una petición del tipo POST");
     res.json({
-        status:200, 
-        message: "Lo sentimos, no se aceptan peticiones POST"
-    })
-})
+        status: 200, 
+        message: "Lo sentimos, no se aceptan peticiones POST en esta raíz"
+    });
+});
 
-//Ejemplo de un ENDPOINT POST - Simular la creacionde un nuevo usuario
+// Crear Usuario (Simulación)
 router.post("/createUser", (req, res) => {
-    console.log("Procesando una petición del tipo POST");
-    console.log("Se ha solicitado crear un nuevo usuario.")
-    const nuevoUsuario = 
-    {
+    const nuevoUsuario = {
         nombre: "Angel Saúl Barrios Martinez",
-        correo:  "240196@utxicotepec.edu.mx"
-    }
+        correo: "240196@utxicotepec.edu.mx"
+    };
     res.json({
-        status:200,
-        message: `Se he solicitado la creación de un usuario de nombre: ${nuevoUsuario.nombre} y correo ${nuevoUsuario.correo}`,
-    })
-})
+        status: 200,
+        message: `Se ha solicitado la creación de: ${nuevoUsuario.nombre}`,
+    });
+});
 
-//Ejemplo de un ENPOINT PUT - Simular la actualización de los datos de un usuario creado 
+// Actualizar Usuario (Simulación PUT)
 router.put("/updateUser", (req, res) => {
-    console.log("Procesando una petición del tipo PUT");
-    console.log("Se ha solicitado ka actualización de los datos del usuario, siendo PUT una actualizacón completa")
-        const usuario = 
-    {
-        nombre: " Angel Saúl Barrios Martinez",
-        correo:  "240196@utxicotepec.edu.mx"
-    }
-    const usuarioActualizado =
-    {
-        nombre: "Angel Saúl",
-        correo: "angelmua@gmail.com"
-    }
-    res.json ({
+    res.json({
         status: 200,
-        message: `Se he solicitado la actualización completa delos datos de nombre: ${usuario.nombre} y correo ${usuario.correo} a ${usuarioActualizado.nombre} y correo ${usuarioActualizado.correo}`,
-    })
-})
+        message: "Se ha solicitado la actualización completa de los datos"
+    });
+});
 
-//Ejemplo de un ENDPOINT PATCH - Simular la actualización de la contraseña del usuario
+// Actualizar Password (Simulación PATCH)
 router.patch("/updatePassword/:nuevoPassword", (req, res) => {
-    console.log("Procesando una petición del tipo PATCH");
-    console.log("Se ha solicitado la actualización de la contraseña, siendo PATCH una actualización parcial")
-    const usuario = 
-    {
-        nombre: " Angel Saúl Barrios Martinez",
-        correo:  "240196@utxicotepec.edu.mx",
-        password: "12345678"
-    }
-    const nuevoPassword = "1234";
-    res.json ({
+    const { nuevoPassword } = req.params;
+    res.json({
         status: 200,
-        message: `Se ha solicitadi la actualización parcial de la contraseña del usuario de nombre 
-        ${usuario.nombre} y correo ${usuario.correo} de la contraseña ${usuario.password} a ${nuevoPassword}`
-    })
-})
+        message: `Actualización parcial de contraseña a: ${nuevoPassword}`
+    });
+});
 
-
-//Ejemplo de un ENDPOINT DELETE 
+// Eliminar Propiedad (Simulación DELETE)
 router.delete("/deleteProperty/:id", (req, res) => {
-    console.log("Procesando una petición del tipo DELETE");
-    const {id} = req.params;
-
+    const { id } = req.params;
     res.json({
         status: 200,
         message: `Se ha solicitado eliminar la propiedad con el id ${id}`
-    })
-})
+    });
+});
 
-
-
-
-
-
-
-
-router.get("/saludo/:nombre", (req, res)=>
-    {
-        const {nombre} = req.params;
-        console.log(`El usuario: ${nombre}`)
-        res.status(200).send(`<p>Bienvenido <b>${nombre}</b></p> </h1`)       
-    })
+// Saludo Dinámico
+router.get("/saludo/:nombre", (req, res) => {
+    const { nombre } = req.params;
+    res.status(200).send(`<h1>Bienvenido <b>${nombre}</b></h1>`);
+});
 
 export default router;
