@@ -55,7 +55,7 @@ const Usuario = db.define("Usuario", {
         defaultValue: false,
         field: "confirmado"
     },
-    tokenRecuperacion: { // El campo tokenRecuperacion es una cadena de texto con una longitud máxima de 255 caracteres. Este campo se utiliza para almacenar un token de recuperación que se genera cuando un usuario solicita restablecer su contraseña. El token se envía al correo electrónico del usuario y se utiliza para verificar su identidad antes de permitirle restablecer su contraseña. Es importante asegurarse de que este token sea único y seguro para proteger la información del usuario.
+    token: { // El campo tokenRecuperacion es una cadena de texto con una longitud máxima de 255 caracteres. Este campo se utiliza para almacenar un token de recuperación que se genera cuando un usuario solicita restablecer su contraseña. El token se envía al correo electrónico del usuario y se utiliza para verificar su identidad antes de permitirle restablecer su contraseña. Es importante asegurarse de que este token sea único y seguro para proteger la información del usuario.
         type: DataTypes.STRING(255),
         allowNull: true,
         field: "token_recuperacion"
