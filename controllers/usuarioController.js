@@ -1,6 +1,7 @@
 import Usuario from '../models/usuario.js';
 import { check, validationResult } from 'express-validator';
 import { generarToken } from '../lib/token.js';
+import { emailRegistro } from '../lib/emails.js';
 
 const formularioLogin = (req, res) => {
     res.render('auth/login', { pagina: "Ingresa los datos de la cuenta" });
@@ -19,7 +20,7 @@ const formualrioRecuperar = (req, res) => {
     res.render('auth/recuperar', { pagina: "Te enviaremos un email con la liga de restauración de contraseña" });
 }
 
-const registrarUsuario = async (req, res) => {
+ const registrarUsuario = async (req, res) => {
     console.log("Intentando registrar un nuevo usuario:");
 
     const { nombreUsuario: nombre, emailUsuario: email, passwordUsuario: password } = req.body;
@@ -57,6 +58,15 @@ const registrarUsuario = async (req, res) => {
             token: generarToken()
         }
         const usuario = await Usuario.create(data);
+
+        //Enviar correo electronico 
+        emailRegistro ({
+            nombre: usuario.nombre,
+            email: usuario.email,
+            token: usuario.token
+        })
+
+
         res.render("template/mensaje", {
             pagina: "Bienvenid@ a BienesRaices!",
             mensaje: `La cuenta asociada al correo ${email}, se ha creado satisfactoriamente, 
@@ -74,11 +84,47 @@ const registrarUsuario = async (req, res) => {
     }
 }
 
+
+const paginaConfirmacion = async (req,res) =>
+{
+    const {token: tokenCuenta} = req.params
+    console.log("Confirmando la cuenta asociada al token: ", tokenCuenta)
+
+    //Confirmar soi el token existe
+    const usuarioToken = await(Usuario.findOne({where:{token:tokenCuenta}}))
+    console.log(usuarioToken);
+
+    if(!usuarioToken)
+    {
+        res.render("template/mensaje",{
+            pagina: "Error al comfirmar la cuenta",
+            mensaje: `El codigo de verificacion (no es valido), por favor intentalo de nuevo.`
+        });
+    }
+
+    //Actualizar los datos del usuario.
+    usuarioToken.token=null;
+    usuarioToken.confirmado=true;
+    usuarioToken.save();
+
+    res.render("template/mensaje",{
+            pagina: "Confirmacion exitosa",
+            mensaje: `La cuenta de: ${usuarioToken.nombre}, asociada al correo electronico: ${usuarioToken.email}
+                se ha confirmado, ahora ya puedes ingresar a la plataforma`
+        });
+
+}
+
+
+
+
+
 // IMPORTANTE: Exportar la nueva función formularioRegistro2
 export {
     formularioLogin,
     formularioRegistro,
     formularioRegistro2, 
     formualrioRecuperar,
-    registrarUsuario
+    registrarUsuario,
+    paginaConfirmacion
 }

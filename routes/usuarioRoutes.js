@@ -103,7 +103,8 @@ import {
     registrarUsuario, 
     formularioRegistro, 
     formularioRegistro2, 
-    formualrioRecuperar 
+    formualrioRecuperar, 
+    paginaConfirmacion
 } from '../controllers/usuarioController.js';
 
 const router = express.Router();
@@ -124,6 +125,9 @@ router.get("/registro2", formularioRegistro2);
 
 // Recuperación de contraseña
 router.get("/recuperar", formualrioRecuperar);
+
+
+router.get("/confirma/:token", paginaConfirmacion);
 
 
 // ==========================================
