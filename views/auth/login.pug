@@ -21,6 +21,10 @@ block contenido
                     input#passwordUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="Por lo menos 8 caracteres" 
                     name="passwordUsuario" type="password")
 
+                div.px-5.flex.items-center.gap-2.mt-1
+                    input#verP1(type="checkbox" class="cursor-pointer" onclick="document.getElementById('passwordUsuario').type = this.checked ? 'text' : 'password'")
+                    label.text-xs.text-gray-500.cursor-pointer(for="verP1") Mostrar contraseña
+
                     //- activar el ojito para para poder ver la contraseña
                     
 
