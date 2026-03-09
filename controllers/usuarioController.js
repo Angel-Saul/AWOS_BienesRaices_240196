@@ -116,7 +116,10 @@ const paginaConfirmacion = async (req,res) =>
 }
 
 
-
+const resetearPassword = (req, res) => {
+    const  { emailUsuario : usuarioSolicitante } = req.body
+    console.log(`El usuario con correo ${usuarioSolicitante} está solicitando un reseteo de contraseña.`)
+}
 
 
 // IMPORTANTE: Exportar la nueva función formularioRegistro2
@@ -126,5 +129,6 @@ export {
     formularioRegistro2, 
     formualrioRecuperar,
     registrarUsuario,
-    paginaConfirmacion
+    paginaConfirmacion,
+    resetearPassword
 }

@@ -104,7 +104,8 @@ import {
     formularioRegistro, 
     formularioRegistro2, 
     formualrioRecuperar, 
-    paginaConfirmacion
+    paginaConfirmacion,
+    resetearPassword
 } from '../controllers/usuarioController.js';
 
 const router = express.Router();
@@ -119,6 +120,7 @@ router.get("/login", formularioLogin);
 // Registro estándar (Manual)
 router.get("/registro", formularioRegistro);
 router.post("/registro", registrarUsuario);
+router.post("/recuperar", resetearPassword)
 
 // Registro/Login Estilo Redes Sociales (Tu diseño de examen)
 router.get("/registro2", formularioRegistro2);
@@ -209,6 +211,9 @@ router.patch("/updatePassword/:nuevoPassword", (req, res) => {
         message: `Actualización parcial de contraseña a: ${nuevoPassword}`
     });
 });
+
+
+
 
 // Eliminar Propiedad (Simulación DELETE)
 router.delete("/deleteProperty/:id", (req, res) => {
