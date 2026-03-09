@@ -52,6 +52,21 @@ app.use("/auth", usuarioRoutes);
 // 8. Conexión a DB e inicio de servidor
 await connectDB();
 
+// Cachear el error
+app.use((err, req, res, next) => {
+    if (err.code === "EBADCSRFTOKEN") {
+        return res.status(403).render("template/mensaje", {
+            pagina: "Error de seguridad",
+            title: "Error CSRF",
+            msg: "El formulario expiró o fue manipulado. Recarga la página."
+        });
+    }
+
+    next(err);
+});
+
+
+
 const PORT = process.env.PORT ?? 40196; // Usando tu puerto personalizado
 app.listen(PORT, ()=> {
     console.log(`El servidor está iniciado en el puerto ${PORT}`)
