@@ -8,5 +8,11 @@ block contenido
 
     .mt-8.mx-auto.max-w-xl.pb-5
         .bg-white.py-8.px-4.shadow-2xl.rounded-2xl
-            //- Mensaje con fondo verde claro, borde y texto verde oscuro
+            //- Mensaje principal
             p.text-xl.font-bold.text-center.my-10.bg-green-100.text-green-700.border-l-4.border-green-500.p-4.uppercase= mensaje
+
+            //- Lógica para mostrar el botón dinámico
+            if buttonVisibility
+                div.flex.justify-center.mt-5
+                    a(class="w-3/4 bg-lime-400 text-white hover:bg-lime-600 font-bold py-3 cursor-pointer shadow-lg hover:shadow-xl uppercase rounded-2xl transition-all duration-300 text-center block"
+                            href=buttonURL)= buttonText

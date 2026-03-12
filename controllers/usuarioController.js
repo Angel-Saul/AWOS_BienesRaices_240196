@@ -1,7 +1,7 @@
 import Usuario from '../models/usuario.js';
 import { check, validationResult } from 'express-validator';
 import { generarToken } from '../lib/token.js';
-import { emailRegistro } from '../lib/emails.js';
+import { emailRegistro, emailResetearPassword } from '../lib/emails.js';
 
 const formularioLogin = (req, res) => {
     res.render('auth/login', { pagina: "Ingresa los datos de la cuenta" });
@@ -18,6 +18,10 @@ const formularioRegistro2 = (req, res) => {
 
 const formualrioRecuperar = (req, res) => {
     res.render('auth/recuperar', { pagina: "Te enviaremos un email con la liga de restauración de contraseña" });
+}
+
+const formularioActualizacionPassword = (req,res) => {
+    res.render("auth/resetearPassword", {pagina: "Ingresa tu nueva contraseña"});
 }
 
  const registrarUsuario = async (req, res) => {
@@ -79,7 +83,7 @@ const formualrioRecuperar = (req, res) => {
             usuario: {
                 nombreUsuario: nombre,
                 emailUsuario: email
-            }
+            },
         });
     }
 }
@@ -110,15 +114,65 @@ const paginaConfirmacion = async (req,res) =>
     res.render("template/mensaje",{
             pagina: "Confirmacion exitosa",
             mensaje: `La cuenta de: ${usuarioToken.nombre}, asociada al correo electronico: ${usuarioToken.email}
-                se ha confirmado, ahora ya puedes ingresar a la plataforma`
+                se ha confirmado, ahora ya puedes ingresar a la plataforma`,
+            buttonVisibility: true,
+            buttonText: "Ingresa a BienesRaices-240196",
+            buttonURL: "/auth/login"
         });
 
 }
 
 
-const resetearPassword = (req, res) => {
+
+const resetearPassword = async (req, res) => {
     const  { emailUsuario : usuarioSolicitante } = req.body
     console.log(`El usuario con correo ${usuarioSolicitante} está solicitando un reseteo de contraseña.`)
+
+    //Validación 1
+    const usuario = await Usuario.findOne({where: { email: usuarioSolicitante }});
+    //SELECT email FROM tb_usuarios WHERE email = usuarioSolicitante //SQL Injection
+    if(!usuario) {
+            res.render("template/mensaje", {
+                pagina: "Error al buscar la cuenta",
+                mensaje: `No se ha encontrado ninguna cuenta asociada al correo: ${usuarioSolicitante}`,
+                buttonVisibility: true,
+                buttonText: "Ingresa a BienesRaices-240196",
+                buttonURL: "/auth/recuperar"
+            });
+    }
+
+    else {
+        //Validación 2
+        if (!usuario.confirmado) {
+           return res.render("template/mensaje", {
+                pagina: "Error, la cuenta no está confirmada",
+                mensaje: `La cuenta asociada al correo: ${usuarioSolicitante} no ha sido validad a través de la liga segura envviada al correo electronico.`,
+                buttonVisibility: true,
+                buttonText: "Intentalo de nuevo",
+                buttonURL: "/auth/recuperar"
+            }); 
+        }
+        else {
+            //Actualizar token
+            usuario.token = generarToken();
+            usuario.save();
+
+            //Enviar por correo el token 
+            emailResetearPassword({
+                nombre: usuario.nombre,
+                email: usuario.email,
+                token: usuario.token
+            })
+        }
+
+        //Renderizar con una vista de correo enviada
+        res.render("template/mensaje",{
+            pagina: "Correo para la Restauración de la Contraseña",
+            mensaje: `Un paso más, te hemos enviado un correo electronico con la liga segura para la restauración de tu contraseña`,
+            buttonVisibility: false
+        });
+
+    }
 }
 
 
@@ -130,5 +184,6 @@ export {
     formualrioRecuperar,
     registrarUsuario,
     paginaConfirmacion,
-    resetearPassword
+    resetearPassword,
+    formularioActualizacionPassword
 }
