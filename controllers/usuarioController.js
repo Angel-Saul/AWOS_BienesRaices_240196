@@ -20,9 +20,28 @@ const formualrioRecuperar = (req, res) => {
     res.render('auth/recuperar', { pagina: "Te enviaremos un email con la liga de restauración de contraseña" });
 }
 
-const formularioActualizacionPassword = (req,res) => {
-    res.render("auth/resetearPassword", {pagina: "Ingresa tu nueva contraseña"});
-}
+const formularioActualizacionPassword = async (req, res) => { // Agregado async
+    console.log(req.body); // Corregido .log
+    const { token } = req.params;
+    
+    console.log(`El usuario con token: ${token} está intentando actualizar su contraseña`);
+    
+    // Usamos Usuario (el modelo importado) y await
+    const usuarioSolicitante = await Usuario.findOne({ where: { token } }); 
+
+    if (!usuarioSolicitante) {
+        return res.render("template/mensaje", {
+            pagina: "Token no válido",
+            mensaje: "Hubo un error al validar tu información, intenta de nuevo",
+            error: true
+        });
+    }
+
+    res.render("auth/resetearPassword", {
+        pagina: "Ingresa tu nueva contraseña",
+        csrfToken: req.csrfToken ? req.csrfToken() : null // Si usas CSRF
+    });
+};
 
  const registrarUsuario = async (req, res) => {
     console.log("Intentando registrar un nuevo usuario:");
@@ -128,6 +147,22 @@ const resetearPassword = async (req, res) => {
     const  { emailUsuario : usuarioSolicitante } = req.body
     console.log(`El usuario con correo ${usuarioSolicitante} está solicitando un reseteo de contraseña.`)
 
+// Validaciones del Frontend 
+    await check('emailUsuario').notEmpty().withMessage("El correo electrónico no puede ser vacío").isEmail().withMessage("El correo electrónico no tiene un formato adecuado").run(req)
+
+    let resultadoValidacion = validationResult(req);
+
+    if(!resultadoValidacion.isEmpty())
+    {
+        return res.render("auth/recuperar", { // Te sugiero agregar 'return' para detener la ejecución
+            pagina: "Error, correo inválido", 
+            errores: resultadoValidacion.array(), 
+            usuario: { emailUsuario: usuarioSolicitante } // <--- Corregido
+        });
+    }
+
+
+
     //Validación 1
     const usuario = await Usuario.findOne({where: { email: usuarioSolicitante }});
     //SELECT email FROM tb_usuarios WHERE email = usuarioSolicitante //SQL Injection
@@ -175,6 +210,26 @@ const resetearPassword = async (req, res) => {
     }
 }
 
+const actualizarPassword = async (req, res) => {
+    const { passwordUsuario } = req.body; // Asegúrate que el name en el input sea este
+    const { token } = req.params; // Normalmente necesitas el token para saber a quién cambiarle la clave
+
+    // Validación
+    await check('passwordUsuario').notEmpty().withMessage("La contraseña no puede estar vacía").isLength({ min: 8 }).withMessage("Mínimo 8 caracteres").run(req);
+
+    let resultadoValidacion = validationResult(req);
+
+    if (!resultadoValidacion.isEmpty()) {
+        return res.render("auth/resetearPassword", {
+            pagina: "Restablecer Contraseña",
+            errores: resultadoValidacion.array()
+        });
+    }
+
+    // Lógica para guardar el nuevo password...
+    const usuario = await Usuario.findOne({ where: { token } });
+    // usuario.password = passwordUsuario; ... etc
+}
 
 // IMPORTANTE: Exportar la nueva función formularioRegistro2
 export {
@@ -185,5 +240,6 @@ export {
     registrarUsuario,
     paginaConfirmacion,
     resetearPassword,
-    formularioActualizacionPassword
+    formularioActualizacionPassword, 
+    actualizarPassword
 }
