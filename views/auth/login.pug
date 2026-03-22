@@ -1,42 +1,56 @@
 extends ../layout/index
-    
+
 block contenido
     .py-10
         h1.text-4xl.my-10.font-extrabold.text-center.text-lime-400 Bienes
             span.font-normal.text-black Raíces 
         h2.text-center.text-2xl.font-normal.text-black= pagina
 
+        //- Bloque de Errores (Agregado del Código 1)
+        if errores
+            div#error-container(class="max-w-md mx-auto my-10 space-y-3 px-4 transition-opacity duration-1000")
+                each error in errores
+                    div(class="flex items-center gap-3 bg-red-600 text-white p-3 rounded-2xl shadow-xl border-b-4 border-red-800 transform transition-all hover:scale-105" role="alert")
+                        svg.h-6.w-6.flex-shrink-0(fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                            path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
+                        p.text-xs.font-bold.uppercase.tracking-wide= error.msg
+
     .mt-8.mx-auto.max-w-xl.pb-5
-        .bg-with.py-8.px-4.shadow-2xl.rounded-2xl
-            form.space-y-5    
-                div.px-5
-                    
-                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-bold(for="emailUsuario") Correo electronico:
-                    input#emailUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="p.e.: usuario@dominio.com" 
-                    name="emailUsuario" type="email")
+        .bg-white.py-8.px-4.shadow-2xl.rounded-2xl
+            //- Configuración del Formulario (Agregado)
+            form.space-y-5(method="POST" action="/auth/login" noValidate) 
+                input(type="hidden" name="_csrf" value=csrfToken)
 
                 div.px-5
+                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-bold(for="emailUsuario") Correo electrónico:
+                    input#emailUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="p.e.: usuario@dominio.com" name="emailUsuario" type="email" value= usuario ? usuario.emailUsuario : '')
 
+                div.px-5
                     label.block.text-sm.uppercase.text-gray-500.mb-2.font-bold(for="passwordUsuario") Contraseña:
-                    input#passwordUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="Por lo menos 8 caracteres" 
-                    name="passwordUsuario" type="password")
+                    input#passwordUsuario.w-full.border.border-gray-300.px-3.py-2.rounded-xl.placeholder-gray-400(placeholder="Por lo menos 8 caracteres" name="passwordUsuario" type="password")
 
                 div.px-5.flex.items-center.gap-2.mt-1
                     input#verP1(type="checkbox" class="cursor-pointer" onclick="document.getElementById('passwordUsuario').type = this.checked ? 'text' : 'password'")
                     label.text-xs.text-gray-500.cursor-pointer(for="verP1") Mostrar contraseña
 
-                    //- activar el ojito para para poder ver la contraseña
-                    
+                input(class="w-full bg-lime-400 hover:bg-lime-500 hover:transition text-gray-500 hover:text-white font-bold py-3 cursor-pointer shadow-lg rounded-4xl uppercase" type="submit" value="Iniciar Sesión")
 
-                input(class="w-full bg-lime-400 hover:bg-lime-500 hover:transition text-gray-500 hover:text-white font-bold py-3 cursor-pointer shadow-lg rounded-4xl uppercase" 
-                type="submit" value="Iniciar Sesión")
-
-                div.flex.items-center.justify-between.pt-3
-                    a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/registro") ¿No tienes cuenta? Registrate
-                    a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/recuperar") ¿Olvidaste tu contraseña? Recuperar contraseña
+                div.flex.items-center.justify-between.pt-3.px-5
+                    a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/registro") ¿No tienes cuenta? Regístrate
+                    a(class="text-gray-500 text-sm hover:decoration-lime-400 hover:underline transition decoration-2" href="/auth/recuperar") ¿Olvidaste tu contraseña?
 
 
-    footer.text-gray-500.py-6.mt-10
-        .max-w-7xl.mx-auto.text-center.text-sm
-            p © 2026 Angel Saúl Barrios Martínez - 240196
-                    //- poner 2 redes sociales para el examen practico 
+//- Script para desaparecer errores (Agregado del Código 1)
+block scripts
+    script.
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerta = document.querySelector('#error-container');
+            if(alerta) {
+                setTimeout(() => {
+                    alerta.classList.add('opacity-0');
+                    setTimeout(() => {
+                        alerta.style.display = 'none';
+                    }, 1000);
+                }, 4000);
+            }
+        });

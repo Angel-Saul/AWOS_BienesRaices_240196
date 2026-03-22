@@ -2,6 +2,7 @@ import express from "express"
 import passport from 'passport'; // Necesario para las rutas de redes sociales
 import { 
     formularioLogin, 
+    autenticarUsuario, // <--- AGREGADO: Función para procesar el login
     registrarUsuario, 
     formularioRegistro, 
     formularioRegistro2, 
@@ -20,46 +21,42 @@ const router = express.Router();
 
 // Login tradicional
 router.get("/login", formularioLogin);
+router.post("/login", autenticarUsuario); // <--- AGREGADO: Procesa el inicio de sesión
 
 // Registro estándar (Manual)
 router.get("/registro", formularioRegistro);
 router.post("/registro", registrarUsuario);
-router.post("/recuperar", resetearPassword)
-
-// Registro/Login Estilo Redes Sociales (Tu diseño de examen)
-router.get("/registro2", formularioRegistro2);
 
 // Recuperación de contraseña
 router.get("/recuperar", formualrioRecuperar);
+router.post("/recuperar", resetearPassword); // <--- Asegurado: Procesa solicitud de token
 router.get("/actualizarPassword/:token", formularioActualizacionPassword);
 router.post("/actualizarPassword", actualizarPassword);
 
-
+// Confirmación de cuenta vía Email
 router.get("/confirma/:token", paginaConfirmacion);
+
+// Registro/Login Estilo Redes Sociales (Diseño de examen)
+router.get("/registro2", formularioRegistro2);
 
 
 // ==========================================
-//   RUTAS DE REDES SOCIALES (OAuth2)
+//    RUTAS DE REDES SOCIALES (OAuth2)
 // ==========================================
 
 // --- GITHUB ---
-// Al dar clic en el botón de GitHub
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-// Callback de GitHub (donde regresa el usuario)
 router.get('/github/callback', 
     passport.authenticate('github', { failureRedirect: '/auth/registro2' }),
     (req, res) => {
-        // Si todo sale bien, lo mandamos al inicio o panel
         res.redirect('/'); 
     }
 );
 
 // --- DISCORD ---
-// Al dar clic en el botón de Discord
 router.get('/discord', passport.authenticate('discord', { scope: ['identify', 'email'] }));
 
-// Callback de Discord
 router.get('/discord/callback', 
     passport.authenticate('discord', { failureRedirect: '/auth/registro2' }),
     (req, res) => {
@@ -69,7 +66,7 @@ router.get('/discord/callback',
 
 
 // ==========================================
-// ENDPOINTS DE PRUEBA / API (JSON)
+//  ENDPOINTS DE PRUEBA / API (JSON)
 // ==========================================
 
 // Root de usuarios
@@ -89,7 +86,7 @@ router.post("/", (req, res) => {
     });
 });
 
-// Crear Usuario (Simulación)
+// Crear Usuario (Simulación API)
 router.post("/createUser", (req, res) => {
     const nuevoUsuario = {
         nombre: "Angel Saúl Barrios Martinez",
@@ -117,9 +114,6 @@ router.patch("/updatePassword/:nuevoPassword", (req, res) => {
         message: `Actualización parcial de contraseña a: ${nuevoPassword}`
     });
 });
-
-
-
 
 // Eliminar Propiedad (Simulación DELETE)
 router.delete("/deleteProperty/:id", (req, res) => {
