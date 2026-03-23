@@ -1,0 +1,19 @@
+extends ../layout/index
+
+block contenido
+    //- No incluimos el header aquí porque YA ESTÁ en el layout/index.pug
+    //- No ponemos la etiqueta main porque YA ESTÁ en el layout/index.pug
+
+    div(class="py-10 text-center")
+        //- Título central con el color de la marca
+        h2(class="text-4xl my-10 font-extrabold text-center text-lime-500") Bienes
+            span(class="font-normal text-black") Raíces
+        
+        p(class="text-xl font-bold text-gray-600 my-5") ¡Bienvenido a la Plataforma de BienesRaíces - 240196!
+
+        //- Contenedor para el botón de acción
+        div(class="mt-10 flex justify-center")
+            a(
+                href="/propiedades/crear" 
+                class="rounded-full py-3 px-10 bg-gray-300 hover:bg-gray-400 text-sm font-bold text-center text-gray-700 uppercase transition-colors shadow-sm"
+            ) Agregar una nueva propiedad

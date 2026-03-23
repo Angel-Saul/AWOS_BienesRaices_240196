@@ -103,8 +103,12 @@ const autenticarUsuario = async(req, res) => {
     usuario.ultimoAcceso = new Date();
     await usuario.save();
 
-    const token = generarJWT({ id: usuario.id, nombre: usuario.nombre });
+    // const token = generarJWT({ id: usuario.id, nombre: usuario.nombre });
+    const token = generarJWT(usuario.id);
+    console.log(token);
 
+
+    
     return res.cookie('_token', token, {
         httpOnly: true,
         sameSite: true
@@ -307,7 +311,9 @@ const admin = async (req, res) => {
 
         if(!usuario) return res.redirect('/auth/login');
 
-        res.render('propiedades/admin', {
+        // res.render('propiedades/admin', {
+        //prueba redirección, clase
+        res.render('main/mis-propiedades', {
             pagina: 'Mis Propiedades',
             usuario: usuario,
             buttonVisibility: true,

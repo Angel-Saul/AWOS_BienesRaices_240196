@@ -9,8 +9,9 @@ html(lang="es")
   
   //- Corregido min-h-screen y añadido flex-col
   body.min-h-screen.bg-gray-100.flex.flex-col
-
     //- Usamos puntos para las clases de Tailwind y evitamos errores
+    if (buttonVisibility)
+      include header
     main.mx-auto.container.mt-10.px-2.flex-grow
         block contenido
 
