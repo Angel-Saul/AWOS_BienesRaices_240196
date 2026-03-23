@@ -1,25 +1,23 @@
 import dotenv from "dotenv";
-dotenv.config(); // <--- DEBE SER LO PRIMERO
+dotenv.config(); 
 
 import express from "express";
 import session from "express-session";
-import passport from "passport";
+// CORRECCIÓN 1: Importamos passport DESDE tu archivo de configuración, no directamente de la librería
+import passport from "./config/passport.js"; 
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import { connectDB } from "./config/db.js";
-import "./config/passport.js";
 import cookieParser from "cookie-parser";
 import csurf from "@dr.pogodin/csurf";
 
 const app = express();
 
-// ... resto de tu código igual ...
-
-// 1. Middlewares básicos de lectura
+// 1. Middlewares básicos
 app.use(express.urlencoded({extended: true})); 
 app.use(express.json());
 app.use(cookieParser());
 
-// 2. Configurar Sesiones (DEBE IR ANTES QUE PASSPORT Y CSURF)
+// 2. Configurar Sesiones
 app.use(session({
     secret: process.env.SESSION_SECRET || "PC-BienesRaices_240196_csrf_secret",
     resave: false, 
@@ -27,20 +25,23 @@ app.use(session({
     cookie: {
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.MODE_ENV === "production"
+        // CORRECCIÓN 2: El nombre de la variable suele ser NODE_ENV
+        secure: process.env.NODE_ENV === "production" 
     }
 }));
 
-// 3. Inicializar Passport (AHORA SÍ, DESPUÉS DE LA SESIÓN)
+// 3. Inicializar Passport (Importante: después de session)
 app.use(passport.initialize());
 app.use(passport.session());
 
 // 4. Protección CSRF
 app.use(csurf());
 
-// 5. Middleware para pasar el Token a las vistas (Ojo: corregí 'crsfToken' a 'csrfToken')
+// 5. Middleware para pasar el Token y el Usuario a las vistas
 app.use((req, res, next) => {
-    res.locals.csrfToken = req.csrfToken(); // Cambié crsf por csrf (el estándar)
+    res.locals.csrfToken = req.csrfToken();
+    // CORRECCIÓN 3: Pasar el usuario de passport a las vistas (útil para el layout)
+    res.locals.usuario = req.user || null; 
     next();
 });
 
@@ -52,25 +53,21 @@ app.use(express.static('public'));
 // 7. Rutas
 app.use("/auth", usuarioRoutes);
 
-// 8. Conexión a DB e inicio de servidor
+// 8. Conexión a DB
 await connectDB();
 
-// Cachear el error
+// Manejo de error CSRF
 app.use((err, req, res, next) => {
     if (err.code === "EBADCSRFTOKEN") {
         return res.status(403).render("template/mensaje", {
             pagina: "Error de seguridad",
-            title: "Error CSRF",
-            msg: "El formulario expiró o fue manipulado. Recarga la página."
+            mensaje: "El formulario expiró o fue manipulado. Recarga la página."
         });
     }
-
     next(err);
 });
 
-
-
-const PORT = process.env.PORT ?? 40196; // Usando tu puerto personalizado
+const PORT = process.env.PORT ?? 40196;
 app.listen(PORT, ()=> {
     console.log(`El servidor está iniciado en el puerto ${PORT}`)
-})
+});
