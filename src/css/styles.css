@@ -1,2 +1,20 @@
 @import "tailwindcss";
 @source "../../views/**/*.pug";
+
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.animate-shrink {
+  animation: shrink 5s linear forwards;
+}
+
+.notification {
+  transform: translateX(120%);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification.show {
+  transform: translateX(0);
+}

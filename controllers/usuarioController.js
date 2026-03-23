@@ -1,10 +1,11 @@
 import Usuario from '../models/usuario.js';
 import { check, validationResult } from 'express-validator';
-import { generarToken } from '../lib/token.js';
-import { emailRegistro, emailResetearPassword } from '../lib/emails.js';
+import { generarToken, generarJWT } from '../lib/token.js';
+// CORRECCIÓN: Se añade emailBloqueo a las importaciones
+import { emailRegistro, emailResetearPassword, emailBloqueo } from '../lib/emails.js';
+import jwt from 'jsonwebtoken';
 
 // --- VISTAS ---
-
 const formularioLogin = (req, res) => {
     res.render('auth/login', { pagina: "Ingresa los datos de la cuenta" });
 }
@@ -21,59 +22,124 @@ const formualrioRecuperar = (req, res) => {
     res.render('auth/recuperar', { pagina: "Te enviaremos un email con la liga de restauración de contraseña" });
 }
 
-// --- LÓGICA DE AUTENTICACIÓN (LOGIN) ---
-
-const autenticarUsuario = async(req,res) =>{
-    const {emailUsuario: email, passwordUsuario: password} = req.body
-    console.log(`Un usuario: ${email} con password: ${password} quiere loguearse al sistema`);
-
-    // Validación de campos vacíos y longitud
-    await check('passwordUsuario').notEmpty().withMessage('La contraseña parece estar vacia')
-    .isLength({min:8, max:30}).withMessage('Longitud de la contraseña debe ser entre 8 y 30 caracteres').run(req);
-
+// --- LÓGICA DE AUTENTICACIÓN ---
+const autenticarUsuario = async(req, res) => {
+    const { emailUsuario: email, passwordUsuario: password } = req.body;
+    
+    await check('passwordUsuario').notEmpty().withMessage('La contraseña parece estar vacia').run(req);
     let resultadoValidacion = validationResult(req);
 
     if(!resultadoValidacion.isEmpty()) {
-        return res.render("auth/login",{
+        return res.render("auth/login", {
             pagina: "Error al intentar ingresar",
             errores: resultadoValidacion.array(),
-            usuario: {emailUsuario: email}
+            usuario: { emailUsuario: email }
         });
     }
 
-    // Buscar al usuario en la base de datos
-    const usuario = await Usuario.findOne({where:{email}});
+    const usuario = await Usuario.findOne({ where: { email } });
 
     if(!usuario) {
         return res.render("auth/login", {
-            pagina: "Error al intentar ingresar a la plataforma",
-            errores: [{"msg": `No existe un usuario asociado a : ${email}`}]
+            pagina: "Error al intentar ingresar",
+            errores: [{"msg": `El usuario no existe`}],
+            usuario: { emailUsuario: email }
         });
     }
 
-    // Validar si la cuenta está confirmada
-    if(!usuario.confirmado) { // Cambié confirmed por confirmado para que coincida con tu modelo
+    // 1. Verificar si la cuenta está bloqueada
+    if (usuario.bloqueado) {
         return res.render("auth/login", {
-            pagina: "Error al intentar ingresar a la plataforma",
-            errores: [{"msg": `La cuenta asociada a : ${email} no está confirmada`}]
+            pagina: "Cuenta Bloqueada",
+            errores: [{ msg: "Tu cuenta ha sido bloqueada por seguridad tras 5 intentos fallidos. Revisa tu email para desbloquearla." }],
+            usuario: { emailUsuario: email }
         });
     }
 
-    // Validar contraseña
-    console.log("Validando Contraseñas");
+    // 2. Validar confirmación de correo
+    if(!usuario.confirmado) { 
+        return res.render("auth/login", {
+            pagina: "Error al intentar ingresar",
+            errores: [{"msg": `Tu cuenta no ha sido confirmada`}],
+            usuario: { emailUsuario: email }
+        });
+    }
+
+    // 3. Validar contraseña e intentos
     if(!usuario.validarPassword(password)) {
+        // Incrementar contador de intentos
+        usuario.intentos += 1;
+
+        if (usuario.intentos >= 5) {
+            usuario.bloqueado = true;
+            usuario.token = generarToken(); 
+            await usuario.save();
+
+            // LLAMADA A LA FUNCIÓN DE EMAIL (Ya no dará error de ReferenceError)
+            await emailBloqueo({ 
+                nombre: usuario.nombre, 
+                email: usuario.email, 
+                token: usuario.token 
+            });
+
+            return res.render("auth/login", {
+                pagina: "Cuenta Bloqueada",
+                errores: [{ msg: "Has superado el límite de intentos. La cuenta se ha bloqueado por seguridad." }],
+                usuario: { emailUsuario: email } 
+            });
+        }
+
+        await usuario.save();
+
         return res.render("auth/login", {
-            pagina: "Error al intentar ingresar a la plataforma",
-            errores: [{"msg": `Contraseña incorrecta, por favor inténtalo de nuevo`}]
+            pagina: "Error al intentar ingresar",
+            errores: [{"msg": `Contraseña incorrecta. Intento ${usuario.intentos} de 5.`}],
+            usuario: { emailUsuario: email } 
         });
     }
 
-    // Si todo es correcto, redirigir (Ejemplo al home)
-    res.redirect('/');
+    // 4. LOGIN EXITOSO
+    usuario.intentos = 0;
+    usuario.ultimoAcceso = new Date();
+    await usuario.save();
+
+    const token = generarJWT({ id: usuario.id, nombre: usuario.nombre });
+
+    return res.cookie('_token', token, {
+        httpOnly: true,
+        sameSite: true
+    }).redirect('/auth/mis-propiedades');
 }
 
-// --- LÓGICA DE REGISTRO Y RECUPERACIÓN ---
+// --- LÓGICA DE DESBLOQUEO ---
+const desbloquearCuenta = async (req, res) => {
+    const { token } = req.params;
+    const usuario = await Usuario.findOne({ where: { token } });
 
+    if(!usuario) {
+        return res.render("template/mensaje", {
+            pagina: "Error de Verificación",
+            mensaje: "El token de desbloqueo no es válido o ya fue utilizado.",
+            error: true
+        });
+    }
+
+    // Reactivar cuenta y limpiar rastro de bloqueo
+    usuario.token = null;
+    usuario.bloqueado = false;
+    usuario.intentos = 0;
+    await usuario.save();
+
+    res.render("template/mensaje", {
+        pagina: "Cuenta Reactivada",
+        mensaje: "Tu cuenta ha sido desbloqueada con éxito. Ya puedes iniciar sesión.",
+        buttonVisibility: true,
+        buttonText: "Ir al Login",
+        buttonURL: "/auth/login"
+    });
+}
+
+// --- REGISTRO Y CONFIRMACIÓN ---
 const registrarUsuario = async (req, res) => {
     const { nombreUsuario: nombre, emailUsuario: email, passwordUsuario: password } = req.body;
 
@@ -102,7 +168,6 @@ const registrarUsuario = async (req, res) => {
     }
 
     const usuario = await Usuario.create({ nombre, email, password, token: generarToken() });
-
     emailRegistro({ nombre: usuario.nombre, email: usuario.email, token: usuario.token });
 
     res.render("template/mensaje", {
@@ -135,6 +200,7 @@ const paginaConfirmacion = async (req,res) => {
     });
 }
 
+// --- RECUPERACIÓN DE PASSWORD ---
 const resetearPassword = async (req, res) => {
     const { emailUsuario: email } = req.body;
     await check('emailUsuario').isEmail().withMessage("Correo inválido").run(req);
@@ -198,6 +264,8 @@ const actualizarPassword = async (req, res) => {
     const usuario = await Usuario.findOne({ where: { token } });
     usuario.password = passwordUsuario;
     usuario.token = null;
+    usuario.intentos = 0; // Resetear si cambia clave
+    usuario.bloqueado = false; // Desbloquear si cambia clave
     await usuario.save();
 
     res.render("template/mensaje", {
@@ -206,9 +274,37 @@ const actualizarPassword = async (req, res) => {
     });
 }
 
+// --- ADMINISTRACIÓN ---
+const admin = async (req, res) => {
+    const { _token } = req.cookies;
+    if (!_token) return res.redirect('/auth/login');
+
+    try {
+        const decoded = jwt.verify(_token, process.env.JWT_SECRET);
+        const usuario = await Usuario.findByPk(decoded.id, { attributes: ['nombre', 'id'] });
+
+        if(!usuario) return res.redirect('/auth/login');
+
+        res.render('propiedades/admin', {
+            pagina: 'Mis Propiedades',
+            usuario: usuario,
+            buttonVisibility: true,
+            buttonText: "Publicar Propiedad",
+            buttonURL: "/auth/propiedades/crear"
+        });
+    } catch (error) {
+        return res.clearCookie('_token').redirect('/auth/login');
+    }
+}
+
+const cerrarSesion = (req, res) => {
+    return res.clearCookie('_token').status(200).redirect('/auth/login');
+}
+
 export {
+    admin,
     formularioLogin,
-    autenticarUsuario, // AGREGADO
+    autenticarUsuario,
     formularioRegistro,
     formularioRegistro2,
     formualrioRecuperar,
@@ -216,5 +312,7 @@ export {
     paginaConfirmacion,
     resetearPassword,
     formularioActualizacionPassword, 
-    actualizarPassword
+    actualizarPassword, 
+    cerrarSesion,
+    desbloquearCuenta
 }

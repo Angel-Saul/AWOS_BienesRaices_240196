@@ -1,15 +1,18 @@
+import dotenv from "dotenv";
+dotenv.config(); // <--- DEBE SER LO PRIMERO
+
 import express from "express";
-import session from "express-session"; 
-import passport from "passport"; 
-import dotenv from "dotenv"; 
+import session from "express-session";
+import passport from "passport";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import { connectDB } from "./config/db.js";
-import "./config/passport.js"; 
+import "./config/passport.js";
 import cookieParser from "cookie-parser";
 import csurf from "@dr.pogodin/csurf";
 
-dotenv.config();
 const app = express();
+
+// ... resto de tu código igual ...
 
 // 1. Middlewares básicos de lectura
 app.use(express.urlencoded({extended: true})); 

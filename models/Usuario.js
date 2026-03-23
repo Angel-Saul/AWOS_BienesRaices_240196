@@ -68,6 +68,22 @@ const Usuario = db.define("Usuario", {
         field: "token_expiracion"
     },
 
+    // --- CAMPOS DE BLOQUEO DE SEGURIDAD ---
+    intentos: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        defaultValue: 0,
+        allowNull: false,
+        field: "intentos_fallidos"
+    },
+
+    bloqueado: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+        field: "cuenta_bloqueada"
+    },
+    // --------------------------------------
+
     regStatus: { 
         type: DataTypes.BOOLEAN,
         defaultValue: true,
@@ -106,8 +122,9 @@ const Usuario = db.define("Usuario", {
 });
 
 // ============================================================
-// METODOS DE INSTANCIA (Lo que faltaba del Código 1)
+// METODOS DE INSTANCIA
 // ============================================================
+
 // Compara la contraseña enviada en el login con la almacenada en la DB
 Usuario.prototype.validarPassword = function (password) {
     return bcrypt.compareSync(password, this.password);

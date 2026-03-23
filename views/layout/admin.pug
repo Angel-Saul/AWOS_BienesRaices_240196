@@ -1,0 +1,29 @@
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Bienes Raíces | #{pagina}
+        link(rel="stylesheet", href="/css/styles.css")
+    body.min-h-screen.bg-gray-50
+        header.bg-white.shadow-md.border-b.border-gray-200.py-4
+            .container.mx-auto.flex.justify-between.items-center.px-4
+                h1.text-2xl.font-extrabold.text-center.text-lime-600 Bienes
+                    span.font-normal.text-black Raíces
+                
+                nav(class="my-2 text-sm font-bold text-gray-500 md:flex md:items-center md:gap-6")
+                    a(href="/auth/mis-propiedades" class="hover:text-lime-600 transition-colors") Mis Propiedades
+                    a(href="" class="hover:text-lime-600 transition-colors") Mi Perfil
+                    //- Cambia esta línea en tu archivo admin.pug
+                    a(href="/auth/cerrar-sesion" class="bg-lime-500 py-2 px-6 rounded-lg text-white hover:bg-lime-600 transition-colors shadow-sm") Cerrar Sesión
+                    
+                    //- Icono del Dueño de la Cuenta (Avatar)
+                    div(class="flex items-center gap-3 ml-4 border-l pl-4")
+                        p(class="text-gray-500 font-bold text-sm hidden md:block")= usuario.nombre
+                        //- Círculo con inicial
+                        div(class="w-10 h-10 bg-lime-400 rounded-full flex items-center justify-center text-gray-600 font-black shadow-sm border-2 border-white")
+                            span= usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U'
+
+        main(class="container mx-auto mt-10 px-2")
+            block contenido
