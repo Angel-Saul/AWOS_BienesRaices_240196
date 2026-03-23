@@ -239,41 +239,63 @@ const formularioActualizacionPassword = async (req, res) => {
     if (!usuario) {
         return res.render("template/mensaje", {
             pagina: "Token no válido",
-            mensaje: "Intenta de nuevo",
+            mensaje: "El enlace para restablecer tu contraseña es inválido o ha expirado.",
             error: true
         });
     }
 
-    res.render("auth/resetearPassword", { pagina: "Nueva Contraseña" });
+    // PASAR EL TOKEN A LA VISTA
+    res.render("auth/resetearPassword", { 
+        pagina: "Nueva Contraseña",
+        csrfToken: req.csrfToken(),
+        token // <--- ¡AÑADE ESTO!
+    });
 }
 
 const actualizarPassword = async (req, res) => {
     const { passwordUsuario } = req.body;
     const { token } = req.params;
 
-    await check('passwordUsuario').isLength({ min: 8 }).run(req);
+    // 1. Validaciones de Express Validator
+    await check('passwordUsuario').isLength({ min: 8 }).withMessage('El password debe ser de al menos 8 caracteres').run(req);
     let resultadoValidacion = validationResult(req);
 
     if (!resultadoValidacion.isEmpty()) {
         return res.render("auth/resetearPassword", {
-            pagina: "Error",
-            errores: resultadoValidacion.array()
+            pagina: "Restablecer Contraseña",
+            errores: resultadoValidacion.array(),
+            csrfToken: req.csrfToken(),
+            token // IMPORTANTE: Reenviar el token para que el form no pierda el action
         });
     }
 
+    // 2. Buscar al usuario
     const usuario = await Usuario.findOne({ where: { token } });
+
+    // 3. VALIDACIÓN CRÍTICA: Si el token es inválido o el usuario no existe
+    if (!usuario) {
+        return res.render("template/mensaje", {
+            pagina: "Error al actualizar",
+            mensaje: "Hubo un error al validar tu información, el token no es válido o ya expiró",
+            error: true
+        });
+    }
+
+    // 4. Si todo está bien, actualizar
     usuario.password = passwordUsuario;
     usuario.token = null;
-    usuario.intentos = 0; // Resetear si cambia clave
-    usuario.bloqueado = false; // Desbloquear si cambia clave
+    usuario.intentos = 0; 
+    usuario.bloqueado = false; 
     await usuario.save();
 
     res.render("template/mensaje", {
         pagina: "Contraseña actualizada",
-        mensaje: "Ya puedes loguearte con tu nueva clave."
+        mensaje: "Ya puedes loguearte con tu nueva clave.",
+        buttonVisibility: true,
+        buttonText: "Ir al Login",
+        buttonURL: "/auth/login"
     });
 }
-
 // --- ADMINISTRACIÓN ---
 const admin = async (req, res) => {
     const { _token } = req.cookies;
