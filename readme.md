@@ -24,7 +24,7 @@ El proyecto estará basado en una Arquitectura SOA (Service Oriented Architectur
 |5.| ORM´s y Bases de Datos | 7 | ✅ Finalizado |
 |6.| Insertando Registros en la Tabla Usuarios | 20 | ✅ Finalizado |
 |7.| Implementación de la Funcionalidad (Feature) Recuperación de Contraseña (Password Recovery) | 12 | ✅ Finalizado |
-|8.| Autentificación de Usuarios (Auth) | ❌ | ❌ |
+|8.| Autentificación de Usuarios (Auth) | 10 | ✅ Finalizado |
 |9.| Definición de Clase Propiedades (Property) |❌| ❌ |
 |10.| Operaciones CRUD (Create, Read, Update, Delete) de las Propiedades |❌| ❌ |
 |11.| Protección de Rutas y Validación de Tokens de Sesión (JWT) |❌ |❌ |
