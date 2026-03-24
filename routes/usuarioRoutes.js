@@ -1,7 +1,9 @@
-import express from "express"
-import passport from 'passport'; // Necesario para las rutas de redes sociales
+import express from "express";
+import passport from 'passport'; 
+import { generarJWT } from '../lib/token.js';
 import { 
     formularioLogin, 
+    autenticarUsuario, 
     registrarUsuario, 
     formularioRegistro, 
     formularioRegistro2, 
@@ -9,131 +11,73 @@ import {
     paginaConfirmacion,
     resetearPassword,
     formularioActualizacionPassword,
-    actualizarPassword
+    actualizarPassword,
+    admin, 
+    cerrarSesion,
+    desbloquearCuenta 
 } from '../controllers/usuarioController.js';
 
 const router = express.Router();
 
-// ==========================================
-// RUTAS DE AUTENTICACIÓN (Vistas Pug)
-// ==========================================
+// Rutas Privadas
+router.get("/mis-propiedades", admin); 
+router.get('/cerrar-sesion', cerrarSesion);
 
-// Login tradicional
+// Rutas Públicas
 router.get("/login", formularioLogin);
-
-// Registro estándar (Manual)
+router.post("/login", autenticarUsuario); 
 router.get("/registro", formularioRegistro);
 router.post("/registro", registrarUsuario);
-router.post("/recuperar", resetearPassword)
-
-// Registro/Login Estilo Redes Sociales (Tu diseño de examen)
+router.get("/recuperar", formualrioRecuperar);
+router.post("/recuperar", resetearPassword); 
+router.get("/confirma/:token", paginaConfirmacion);
+router.get("/desbloquear/:token", desbloquearCuenta); 
+router.get("/actualizarPassword/:token", formularioActualizacionPassword);
+router.post("/actualizarPassword/:token", actualizarPassword); 
 router.get("/registro2", formularioRegistro2);
 
-// Recuperación de contraseña
-router.get("/recuperar", formualrioRecuperar);
-router.get("/actualizarPassword/:token", formularioActualizacionPassword);
-router.post("/actualizarPassword", actualizarPassword);
-
-
-router.get("/confirma/:token", paginaConfirmacion);
-
-
 // ==========================================
-//   RUTAS DE REDES SOCIALES (OAuth2)
+//    RUTAS DE REDES SOCIALES (OAuth2)
 // ==========================================
 
 // --- GITHUB ---
-// Al dar clic en el botón de GitHub
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-// Callback de GitHub (donde regresa el usuario)
 router.get('/github/callback', 
-    passport.authenticate('github', { failureRedirect: '/auth/registro2' }),
+    passport.authenticate('github', { 
+        failureRedirect: '/auth/login',
+        keepSessionInfo: true 
+    }),
     (req, res) => {
-        // Si todo sale bien, lo mandamos al inicio o panel
-        res.redirect('/'); 
+        const token = generarJWT({ id: req.user.id, nombre: req.user.nombre });
+        return res.cookie('_token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production'
+        }).redirect('/auth/mis-propiedades'); 
     }
 );
 
 // --- DISCORD ---
-// Al dar clic en el botón de Discord
 router.get('/discord', passport.authenticate('discord', { scope: ['identify', 'email'] }));
 
-// Callback de Discord
 router.get('/discord/callback', 
-    passport.authenticate('discord', { failureRedirect: '/auth/registro2' }),
+    passport.authenticate('discord', { 
+        failureRedirect: '/auth/login',
+        keepSessionInfo: true 
+    }),
     (req, res) => {
-        res.redirect('/');
+        // Verificamos que req.user exista antes de generar el token
+        if(!req.user) return res.redirect('/auth/login');
+
+        const token = generarJWT({ id: req.user.id, nombre: req.user.nombre });
+
+        return res.cookie('_token', token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production'
+        }).redirect('/auth/mis-propiedades'); 
     }
 );
-
-
-// ==========================================
-// ENDPOINTS DE PRUEBA / API (JSON)
-// ==========================================
-
-// Root de usuarios
-router.get("/", (req, res) => {
-    console.log("Bienvenid@ al sistema de Bienes Raices");
-    res.json({
-        status: 200, 
-        message: "Solicitud recibida a través del método GET"
-    });
-});
-
-// Ejemplo POST denegado en root
-router.post("/", (req, res) => {
-    res.json({
-        status: 200, 
-        message: "Lo sentimos, no se aceptan peticiones POST en esta raíz"
-    });
-});
-
-// Crear Usuario (Simulación)
-router.post("/createUser", (req, res) => {
-    const nuevoUsuario = {
-        nombre: "Angel Saúl Barrios Martinez",
-        correo: "240196@utxicotepec.edu.mx"
-    };
-    res.json({
-        status: 200,
-        message: `Se ha solicitado la creación de: ${nuevoUsuario.nombre}`,
-    });
-});
-
-// Actualizar Usuario (Simulación PUT)
-router.put("/updateUser", (req, res) => {
-    res.json({
-        status: 200,
-        message: "Se ha solicitado la actualización completa de los datos"
-    });
-});
-
-// Actualizar Password (Simulación PATCH)
-router.patch("/updatePassword/:nuevoPassword", (req, res) => {
-    const { nuevoPassword } = req.params;
-    res.json({
-        status: 200,
-        message: `Actualización parcial de contraseña a: ${nuevoPassword}`
-    });
-});
-
-
-
-
-// Eliminar Propiedad (Simulación DELETE)
-router.delete("/deleteProperty/:id", (req, res) => {
-    const { id } = req.params;
-    res.json({
-        status: 200,
-        message: `Se ha solicitado eliminar la propiedad con el id ${id}`
-    });
-});
-
-// Saludo Dinámico
-router.get("/saludo/:nombre", (req, res) => {
-    const { nombre } = req.params;
-    res.status(200).send(`<h1>Bienvenido <b>${nombre}</b></h1>`);
-});
 
 export default router;

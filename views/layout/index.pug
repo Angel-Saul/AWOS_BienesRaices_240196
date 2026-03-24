@@ -4,9 +4,22 @@ html(lang="es")
     meta(charset="UTF-8")
     meta(http-equiv="X-UA-Compatible" content="IE=edge")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title .: BieneesRaices :. - 240196 #{pagina}
+    title .: BieneesRaices :. - 240196 | #{pagina}
     link(rel="stylesheet" href="/css/styles.css")
-  body.minh-screen.bg-gray-100
-
-    main(class="mx-auto container mt-10 px-2")
+  
+  //- Corregido min-h-screen y añadido flex-col
+  body.min-h-screen.bg-gray-100.flex.flex-col
+    //- Usamos puntos para las clases de Tailwind y evitamos errores
+    if (buttonVisibility)
+      include header
+    main.mx-auto.container.mt-10.px-2.flex-grow
         block contenido
+
+    //- Footer Global
+    footer.text-gray-500.py-6.mt-10.border-t.border-gray-200.bg-white
+      .max-w-7xl.mx-auto.text-center.text-sm
+        p © 2026 Angel Saúl Barrios Martínez - 240196
+        
+
+    //- IMPORTANTE: Sin esta línea, tus scripts de Login no funcionarán
+    block scripts
